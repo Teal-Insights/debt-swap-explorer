@@ -37,7 +37,10 @@
     const div = document.createElement("div");
     div.className = "instrument";
     div.innerHTML = `
-      <button class="del" title="Remove this instrument">&#10005; remove</button>
+      <div class="inst-head">
+        <span class="tag">Instrument</span>
+        <button class="del" title="Remove this instrument">&#10005; remove</button>
+      </div>
       <div class="row c3">
         <div><label>Type</label>
           <select data-f="kind">
@@ -203,6 +206,23 @@
   }
   const yearTicks = (years, cy) => years.filter(t => (cy + t) % 2 === 0);
 
+  /* Shared tooltip */
+  const tip = document.createElement("div");
+  tip.className = "d3tip";
+  document.body.appendChild(tip);
+  const showTip = (ev, html) => {
+    tip.innerHTML = html;
+    tip.style.opacity = 1;
+    const pad = 14, tw = tip.offsetWidth, th = tip.offsetHeight;
+    let x = ev.clientX + pad, y = ev.clientY - th / 2;
+    if (x + tw > window.innerWidth - 8) x = ev.clientX - tw - pad;
+    y = Math.max(8, Math.min(y, window.innerHeight - th - 8));
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  };
+  const hideTip = () => { tip.style.opacity = 0; };
+  const sw = c => `<span class="sw" style="background:${c}"></span>`;
+  const m$ = x => fmt(x) + " m$";
+
   function renderChart1(r, cy) {
     document.getElementById("c1title").textContent =
       "Debt service falls now and rises later; the spending commitment fills the trough";
@@ -242,6 +262,19 @@
     item(16, COLORS.teal, "New debt service");
     leg.append("rect").attr("x", 4).attr("y", 26).attr("width", 14).attr("height", 10).attr("fill", COLORS.gold).attr("opacity", .55);
     leg.append("text").attr("class", "legend").attr("x", 28).attr("y", 35).text("Development spending");
+
+    /* hover: one invisible column per year, tooltip with all three series */
+    svg.selectAll(".hov").data(years).join("rect")
+      .attr("x", t => x(t)).attr("width", x.bandwidth())
+      .attr("y", m.t).attr("height", h - m.b - m.t)
+      .attr("fill", "transparent")
+      .on("mousemove", (ev, t) => showTip(ev,
+        `<span class="tt-year">${cy + t}</span>` +
+        `${sw(COLORS.slate)}Old service: <b>${m$(r.oldService[t - 1])}</b><br>` +
+        `${sw(COLORS.teal)}New service: <b>${m$(r.newService[t - 1])}</b><br>` +
+        `${sw(COLORS.gold)}Dev. spending: <b>${m$(r.spending[t - 1])}</b><br>` +
+        `Savings: <b>${m$(r.savingsByYear[t - 1])}</b>`))
+      .on("mouseleave", hideTip);
   }
 
   function renderChart2(r, cy) {
@@ -268,7 +301,12 @@
       .attr("y", t => Math.min(y(0), y(r.fiscalSpace[t - 1])))
       .attr("height", t => Math.abs(y(0) - y(r.fiscalSpace[t - 1])))
       .attr("fill", t => r.fiscalSpace[t - 1] >= 0 ? COLORS.teal : COLORS.terracotta)
-      .attr("opacity", 0.8);
+      .attr("opacity", 0.8)
+      .on("mousemove", (ev, t) => showTip(ev,
+        `<span class="tt-year">${cy + t}</span>` +
+        `Net fiscal space: <b>${m$(r.fiscalSpace[t - 1])}</b><br>` +
+        `<span style="opacity:.75">savings ${m$(r.savingsByYear[t - 1])} − spending ${m$(r.spending[t - 1])}</span>`))
+      .on("mouseleave", hideTip);
     svg.append("line").attr("x1", m.l).attr("x2", w - m.r).attr("y1", y(0)).attr("y2", y(0))
       .attr("stroke", COLORS.slate).attr("stroke-width", 1);
   }
@@ -297,7 +335,22 @@
       .attr("fill", "none").attr("stroke", COLORS.sage).attr("stroke-width", 2);
     svg.selectAll(".obs").data(curve).join("circle")
       .attr("cx", p => x(p[0])).attr("cy", p => y(p[1] * 100)).attr("r", 4.5)
-      .attr("fill", COLORS.teal);
+      .attr("fill", COLORS.teal)
+      .on("mousemove", (ev, p) => showTip(ev,
+        `<span class="tt-year">${cy + p[0]}</span>Observed yield: <b>${(p[1] * 100).toFixed(2)}%</b>`))
+      .on("mouseleave", hideTip);
+
+    /* hover along the interpolated curve */
+    svg.append("rect").attr("x", m.l).attr("y", m.t)
+      .attr("width", w - m.r - m.l).attr("height", h - m.b - m.t)
+      .attr("fill", "transparent")
+      .on("mousemove", ev => {
+        const [mx] = d3.pointer(ev, svg.node());
+        const d = Math.max(1, Math.min(maxD, Math.round(x.invert(mx))));
+        showTip(ev, `<span class="tt-year">${cy + d}</span>Discount yield: <b>${(SwapModel.interpYield(curve, d) * 100).toFixed(2)}%</b>`);
+      })
+      .on("mouseleave", hideTip);
+    svg.selectAll("circle").raise(); /* keep dots above the hover overlay */
   }
 
   /* ---------- CSV export ---------- */

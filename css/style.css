@@ -84,15 +84,25 @@ input:focus, select:focus { outline: 2px solid var(--teal); outline-offset: -1px
 .row { display: grid; gap: .55rem; margin-bottom: .6rem; }
 .row.c2 { grid-template-columns: 1fr 1fr; }
 .row.c3 { grid-template-columns: 1fr 1fr 1fr; }
+/* Inputs align to the bottom of their cell so two-line labels don't
+   stagger the boxes; labels grow to fill the space above. */
+.row > div { display: flex; flex-direction: column; justify-content: flex-end; }
+.row > div > label { flex: 1 0 auto; }
 .instrument {
   border: 1px solid var(--divider); border-left: 3px solid var(--sage);
-  border-radius: 6px; padding: .7rem .8rem .3rem; margin-bottom: .7rem;
-  position: relative;
+  border-radius: 6px; padding: .55rem .8rem .3rem; margin-bottom: .7rem;
+}
+.inst-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: .35rem;
+}
+.inst-head .tag {
+  font-family: var(--sans); font-size: .68rem; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--sage); font-weight: 600;
 }
 .instrument .del {
-  position: absolute; top: .45rem; right: .55rem; cursor: pointer;
-  border: none; background: none; color: var(--terracotta);
-  font-family: var(--sans); font-size: .8rem;
+  cursor: pointer; border: none; background: none; color: var(--terracotta);
+  font-family: var(--sans); font-size: .78rem; padding: 0;
 }
 .btn {
   font-family: var(--sans); font-size: .85rem; cursor: pointer;
@@ -125,10 +135,23 @@ input:focus, select:focus { outline: 2px solid var(--teal); outline-offset: -1px
 /* ---------- WB-comparable savings table ---------- */
 .savings-table { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: .88rem; margin-top: .4rem; }
 .savings-table th { text-align: left; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--slate); padding: .3rem .5rem .3rem 0; border-bottom: 1px solid var(--divider); }
-.savings-table td { padding: .38rem .5rem .38rem 0; border-bottom: 1px solid var(--divider); }
+.savings-table td { padding: .38rem .5rem .38rem 0; border-bottom: 1px solid var(--divider); vertical-align: baseline; }
+.savings-table td:first-child { white-space: nowrap; padding-right: 1.2rem; }
 .savings-table td.num, .savings-table th.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); white-space: nowrap; }
 .savings-table td.num.neg { color: var(--terracotta); }
-.savings-table td.note { color: var(--slate); font-size: .76rem; padding-left: .8rem; }
+.savings-table td.note { color: var(--slate); font-size: .76rem; padding-left: 1rem; width: 45%; }
+@media (max-width: 720px) { .savings-table td:first-child { white-space: normal; } .savings-table td.note { display: none; } }
+
+/* ---------- chart tooltips ---------- */
+.d3tip {
+  position: fixed; pointer-events: none; z-index: 50;
+  background: var(--ink); color: #fff; font-family: var(--sans);
+  font-size: .78rem; line-height: 1.45; padding: .45rem .6rem;
+  border-radius: 5px; box-shadow: 0 2px 8px rgba(20,62,90,.25);
+  opacity: 0; transition: opacity .08s;
+}
+.d3tip .tt-year { font-weight: 700; margin-bottom: .1rem; display: block; }
+.d3tip .sw { display: inline-block; width: .6em; height: .6em; border-radius: 2px; margin-right: .35em; }
 
 footer {
   border-top: 1px solid var(--divider); font-family: var(--sans);

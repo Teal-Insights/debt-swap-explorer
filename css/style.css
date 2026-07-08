@@ -1,7 +1,8 @@
-/* Teal Insights Debt Swap Explorer — brand system from brand.typ
-   (locked palette, June 2026). Licensed Klim webfonts (Tiempos / Söhne)
-   are not shipped in this public demo; the stacks below approximate the
-   house recipe with system fonts. */
+/* Teal Insights Debt Swap Explorer — brand palette from brand.typ
+   (locked, June 2026). Typography: this is an open-source public repo, so
+   only open-licensed fonts are used (Source Serif 4 and Inter, both OFL,
+   loaded from Google Fonts). No licensed house typefaces are shipped or
+   referenced. */
 
 :root {
   --ink: #143E5A;
@@ -13,8 +14,8 @@
   --surface: #FAFAF7;
   --divider: #D4D0CA;
   --body-ink: #2A2A2A;
-  --serif: Georgia, "Times New Roman", "Tiempos Text", serif;
-  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,16 +34,8 @@ header {
   padding: 1.4rem 2rem 1.2rem;
 }
 .masthead { max-width: 1200px; margin: 0 auto; display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
-.wordmark {
-  font-family: var(--sans);
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  font-size: 0.85rem;
-  color: #fff;
-  text-transform: uppercase;
-  text-decoration: none;
-}
-.wordmark .globe { color: var(--teal); }
+.wordmark { display: inline-block; text-decoration: none; }
+.wordmark img { height: 46px; width: auto; display: block; }
 header h1 { font-size: 1.7rem; font-weight: 600; margin-top: .35rem; }
 header .subtitle { font-family: var(--sans); font-size: .92rem; color: #cfe0ea; margin-top: .3rem; max-width: 62ch; }
 header nav a {

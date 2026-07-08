@@ -21,7 +21,7 @@
 </header>
 
 <article>
-  <p class="byline">Teal Insights — research preview, July 2026. Feedback welcome: lte@tealinsights.com</p>
+  <p class="byline">Teal Insights research preview, July 2026. Feedback welcome: lte@tealinsights.com</p>
 
   <h2>What this tool is</h2>
   <p>The Debt Swap Explorer prices a debt-for-development swap from one explicit set of
@@ -123,9 +123,10 @@
   calculator's yield-curve mode interpolates linearly between observed points (with
   flat extrapolation beyond them, capped at 0-30%), while its User Guide describes a
   log-linear regression fit; small differences in curve-mode NPV can arise from that
-  divergence. The Explorer's curve mode follows the deployed behavior. Second, the
+  divergence. The Explorer's public interface uses a flat discount rate. Second, the
   calculator reports an additional line, savings "from maturity extension," computed as
-  the new-debt amount times the discount rate times the change in average maturity, and
+  the new-debt amount times a marginal rate (5% in fixed mode; the curve yield at the
+  extension tenor in curve mode) times the change in average maturity, and
   floored at zero. That is a duration-matching heuristic rather than a cash flow, so
   the Explorer omits it; the value of the extension already shows in the debt-service
   chart and the ATM change.</p>

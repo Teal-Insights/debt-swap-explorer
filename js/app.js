@@ -142,7 +142,7 @@
 
   function renderChart1(r) {
     document.getElementById("c1title").textContent =
-      "Debt service falls now, rises later — the spending commitment fills the trough";
+      "Debt service falls now and rises later; the spending commitment fills the trough";
     document.getElementById("c1sub").textContent =
       "m$ per year. Old debt service (gray), new debt service (teal), committed development spending (gold bars).";
     const svg = d3.select("#chart1");

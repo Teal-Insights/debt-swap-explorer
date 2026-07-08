@@ -57,7 +57,7 @@
         <h2>New debt</h2>
         <div class="row c3">
           <div><label>Final maturity (year)</label><input id="nMat" type="number" value="2036"></div>
-          <div><label>Interest rate (% p.y.)</label><input id="nRate" type="number" step="0.1" value="5"></div>
+          <div><label>Interest rate (%&nbsp;p.y.)</label><input id="nRate" type="number" step="0.1" value="5"></div>
           <div><label>Grace period (years)</label><input id="nGrace" type="number" value="5"></div>
         </div>
         <div class="row c2">
@@ -77,11 +77,10 @@
       <div class="panel">
         <h2>Discount factor</h2>
         <div class="row c2" style="align-items:center;">
-          <div>
-            <label style="display:inline-flex; align-items:center; gap:.35rem; font-size:.85rem; text-transform:none; letter-spacing:0;">
+          <div style="flex-direction:row; align-items:center; gap:1rem; justify-content:flex-start;">
+            <label style="display:inline-flex; align-items:center; gap:.35rem; font-size:.85rem; text-transform:none; letter-spacing:0; margin:0;">
               <input type="radio" name="discApproach" value="fixed" checked style="width:auto;"> Fixed</label>
-            &nbsp;&nbsp;
-            <label style="display:inline-flex; align-items:center; gap:.35rem; font-size:.85rem; text-transform:none; letter-spacing:0;">
+            <label style="display:inline-flex; align-items:center; gap:.35rem; font-size:.85rem; text-transform:none; letter-spacing:0; margin:0;">
               <input type="radio" name="discApproach" value="curve" style="width:auto;"> Yield curve</label>
           </div>
           <div id="fixedRateBox"><label>Fixed discount factor (%)</label><input id="dRate" type="number" step="0.1" value="5"></div>
@@ -151,7 +150,7 @@
 </main>
 
 <footer>
-  <p>Teal Insights research preview, built July 2026. The default scenario carries the same terms as the worked example in the
+  <p>&copy; 2026 Teal Insights LLC. Research preview, built July 2026. The default scenario carries the same terms as the worked example in the
     <a href="https://www.worldbank.org/content/dam/wbr/debt-swap-user-guide-july-2025.pdf">World Bank Debt Swap Calculator User Guide</a>
     (Rivetti &amp; Mihalyi, July 2025), and the engine reproduces the guide's published results.
     Illustrative analysis, not financial advice. See the <a href="methodology.html">methodology</a> for what this does and does not do.</p>

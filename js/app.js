@@ -58,7 +58,7 @@
             <option value="last3"${inst.profile === "last3" ? " selected" : ""}>Last 3 years</option>
           </select></div>
         <div><label>Remaining grace period (yrs)</label><input data-f="grace" type="number" value="${inst.grace}"${inst.kind === "bond" ? " disabled" : ""}></div>
-        <div><label>Interest rate (% p.y.)</label><input data-f="rate" type="number" step="0.1" value="${inst.rate}"></div>
+        <div><label>Interest rate (%&nbsp;p.y.)</label><input data-f="rate" type="number" step="0.1" value="${inst.rate}"></div>
       </div>
       <div class="row c2">
         <div><label>Prepayment fee / premium (%)</label><input data-f="fee" type="number" step="0.1" value="${inst.fee}"></div>
@@ -164,21 +164,22 @@
         card("PV of commitment", r.pvSpending, "m$, development spending leg", {}) +
         card("Net gain after commitment", r.npvNetOfSpending, "m$, the number that decides it", { hero: true, sign: true }) +
         card("Nominal savings over 3 yrs", r.nominalOver3, "m$, the liquidity view", { sign: true }) +
-        card("Maturity extension", r.atmNew - r.atmOld, `yrs (ATM ${r.atmOld.toFixed(1)} → ${r.atmNew.toFixed(1)})`, { sign: true });
+        card("Maturity change (ATM)", +r.atmNew.toFixed(1) - +r.atmOld.toFixed(1),
+          `yrs (${r.atmOld.toFixed(1)} → ${r.atmNew.toFixed(1)}, service-weighted)`, { sign: true });
     } else if (currentPersona === "funder") {
       el.innerHTML =
         card("Leverage", r.leverage, r.leverage ? "PV of development spend per $ of subsidy" : "enter a subsidy", { hero: true, raw: r.leverage ? r.leverage.toFixed(1) + "×" : "—" }) +
         card("PV of commitment", r.pvSpending, "m$ of long-term, predictable spending", { hero: true }) +
         card("Your subsidy", r.subsidy, "m$, grant element of support", {}) +
         card("Debtor's net gain", r.npvNetOfSpending, "m$, what the country keeps", { sign: true }) +
-        card("Commitment horizon", 0, "", { raw: (r.spending.filter(x => x > 0).length) + " yrs" });
+        card("Commitment horizon", 0, "years of committed spending", { raw: (r.spending.filter(x => x > 0).length) + " yrs" });
     } else {
       el.innerHTML =
         card("Buyback cost", r.buybackCost, "m$ paid to retire old claims", { hero: true }) +
         card("PV of old flows", r.pvOld, "m$ at the chosen discount basis", {}) +
         card("Discount captured", r.buybackVsPv, "m$, PV retired − cash paid", { hero: true, sign: true }) +
         card("New debt issued", r.amount, "m$, funds the buyback", {}) +
-        card("ATM of new claim", r.atmNew, "yrs, service-weighted", { raw: r.atmNew.toFixed(1) + " yrs" });
+        card("ATM of new claim", r.atmNew, "service-weighted average time", { raw: r.atmNew.toFixed(1) + " yrs" });
     }
     document.getElementById("personaNote").textContent = personaCopy[currentPersona];
   }
@@ -225,7 +226,7 @@
 
   function renderChart1(r, cy) {
     document.getElementById("c1title").textContent =
-      "Debt service falls now and rises later; the spending commitment fills the trough";
+      "Payments shift: relief now, a repayment hump later";
     document.getElementById("c1sub").textContent =
       "m$ per year. Old debt service (gray, dashed), new debt service (teal), committed development spending (gold bars).";
     const svg = d3.select("#chart1");
@@ -244,7 +245,7 @@
     svg.selectAll(".spend").data(years).join("rect")
       .attr("x", t => x(t)).attr("width", x.bandwidth())
       .attr("y", t => y(r.spending[t - 1])).attr("height", t => y(0) - y(r.spending[t - 1]))
-      .attr("fill", COLORS.gold).attr("opacity", 0.55);
+      .attr("fill", COLORS.gold).attr("opacity", 0.85);
 
     const line = acc => d3.line().x(t => x(t) + x.bandwidth() / 2).y(t => y(acc(t)));
     svg.append("path").datum(years).attr("d", line(t => r.oldService[t - 1]))
@@ -309,6 +310,26 @@
       .on("mouseleave", hideTip);
     svg.append("line").attr("x1", m.l).attr("x2", w - m.r).attr("y1", y(0)).attr("y2", y(0))
       .attr("stroke", COLORS.slate).attr("stroke-width", 1);
+
+    /* direct regime labels + the deal verdict, so the chart travels alone */
+    const posYears = years.filter(t => r.fiscalSpace[t - 1] > 0);
+    const negYears = years.filter(t => r.fiscalSpace[t - 1] < 0);
+    const label = (ts, text, color, above) => {
+      if (!ts.length) return;
+      const t0 = ts.reduce((a, b) =>
+        Math.abs(r.fiscalSpace[b - 1]) > Math.abs(r.fiscalSpace[a - 1]) ? b : a);
+      const vy = y(r.fiscalSpace[t0 - 1]) + (above ? -8 : 16);
+      svg.append("text").attr("class", "legend")
+        .attr("x", x(t0) + x.bandwidth() / 2).attr("y", vy)
+        .attr("text-anchor", "middle").attr("fill", color)
+        .attr("font-weight", 600).text(text);
+    };
+    label(posYears, "space created", COLORS.teal, true);
+    label(negYears, "the squeeze", COLORS.terracotta, false);
+    svg.append("text").attr("x", w - m.r - 4).attr("y", m.t + 8)
+      .attr("text-anchor", "end").attr("font-family", "Inter, sans-serif")
+      .attr("font-size", "12.5px").attr("font-weight", 650).attr("fill", COLORS.ink)
+      .text(`Net of the commitment: ${r.npvNetOfSpending >= 0 ? "+" : "−"}${Math.abs(r.npvNetOfSpending).toFixed(1)} m$ NPV`);
   }
 
   function renderChart3(curve, horizon, cy) {

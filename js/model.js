@@ -44,14 +44,19 @@ const SwapModel = (() => {
   }
 
   function interpYield(curve, d) {
+    /* Linear interpolation between observed points, flat extrapolation,
+     * capped 0-30%: the WB calculator's deployed behavior. */
     const pts = [...curve].sort((a, b) => a[0] - b[0]);
-    if (d <= pts[0][0]) return pts[0][1];
-    if (d >= pts[pts.length - 1][0]) return pts[pts.length - 1][1];
-    for (let i = 0; i < pts.length - 1; i++) {
-      const [d0, y0] = pts[i], [d1, y1] = pts[i + 1];
-      if (d0 <= d && d <= d1) return y0 + (y1 - y0) * (d - d0) / (d1 - d0);
+    let y;
+    if (d <= pts[0][0]) y = pts[0][1];
+    else if (d >= pts[pts.length - 1][0]) y = pts[pts.length - 1][1];
+    else {
+      for (let i = 0; i < pts.length - 1; i++) {
+        const [d0, y0] = pts[i], [d1, y1] = pts[i + 1];
+        if (d0 <= d && d <= d1) { y = y0 + (y1 - y0) * (d - d0) / (d1 - d0); break; }
+      }
     }
-    return pts[pts.length - 1][1];
+    return Math.min(Math.max(y, 0), 0.3);
   }
 
   function discountFactors(horizon, flat, curve) {
@@ -109,6 +114,15 @@ const SwapModel = (() => {
     };
     const pvOld = dot(oldService, dfs);
 
+    /* WB dashboard's "savings from maturity extension": a duration-matching
+     * heuristic, not a cash flow. amount x marginal rate x ATM extension,
+     * floored at 0. Guide behavior: rate = selected discount factor (fixed
+     * mode) or the curve yield at the extension tenor (curve mode). The
+     * DEPLOYED fixed-mode code hardcodes 5%; we follow the guide. */
+    const ext = atm(newService) - atm(oldService);
+    const extRate = curve ? interpYield(curve, Math.max(1, Math.round(ext))) : flat;
+    const extensionSavings = Math.max(0, amount * extRate * ext);
+
     return {
       horizon, oldService, newService, spending, dfs,
       buybackCost: buyback, amount, fees, savingsByYear,
@@ -116,13 +130,14 @@ const SwapModel = (() => {
       nominalOver3: nominalOver(3), nominalOver5: nominalOver(5),
       npvSavings, pvSpending, npvNetOfSpending: npvSavings - pvSpending,
       fiscalSpace, atmOld: atm(oldService), atmNew: atm(newService),
+      extensionSavings,
       pvOld, buybackVsPv: pvOld - buyback,
       leverage: subsidy > 0 ? pvSpending / subsidy : null,
       subsidy,
     };
   }
 
-  return { run, buybackCost, discountFactors };
+  return { run, buybackCost, discountFactors, interpYield };
 })();
 
 /* Self-check against the Python reference (default scenario = the WB User

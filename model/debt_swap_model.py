@@ -139,15 +139,19 @@ def discount_factors(horizon: int, flat: float | None = None,
 
 
 def _interp_yield(curve: list[tuple[float, float]], d: float) -> float:
+    """Linear interpolation, flat extrapolation, capped 0-30% (the WB
+    calculator's deployed behavior)."""
     pts = sorted(curve)
     if d <= pts[0][0]:
-        return pts[0][1]
-    if d >= pts[-1][0]:
-        return pts[-1][1]
-    for (d0, y0), (d1, y1) in zip(pts, pts[1:]):
-        if d0 <= d <= d1:
-            return y0 + (y1 - y0) * (d - d0) / (d1 - d0)
-    return pts[-1][1]
+        y = pts[0][1]
+    elif d >= pts[-1][0]:
+        y = pts[-1][1]
+    else:
+        for (d0, y0), (d1, y1) in zip(pts, pts[1:]):
+            if d0 <= d <= d1:
+                y = y0 + (y1 - y0) * (d - d0) / (d1 - d0)
+                break
+    return min(max(y, 0.0), 0.3)
 
 
 @dataclass
@@ -160,6 +164,8 @@ class SwapResult:
     buyback_cost: float
     upfront_fees: float
     subsidy: float
+    flat: float | None = 0.05
+    curve: list[tuple[float, float]] | None = None
 
     # --- MoF (debtor) metrics -------------------------------------------
     @property
@@ -196,6 +202,24 @@ class SwapResult:
         if tot == 0:
             return 0.0
         return sum(f * (t + 0.5) for t, f in enumerate(flows)) / tot
+
+    @property
+    def extension_savings(self) -> float:
+        """The WB dashboard's 'savings from maturity extension' line.
+
+        A duration-matching heuristic, not a cash flow: new-debt amount x
+        marginal rate x ATM extension, floored at zero. Per the user guide,
+        the marginal rate is the selected discount factor (fixed mode) or
+        the curve yield at the extension tenor (curve mode). The deployed
+        fixed-mode code hardcodes 5%; we follow the guide.
+        """
+        ext = self.atm(self.new_service) - self.atm(self.old_service)
+        amount = self.buyback_cost
+        if self.curve is not None:
+            rate = _interp_yield(self.curve, max(1, round(ext)))
+        else:
+            rate = self.flat if self.flat is not None else 0.05
+        return max(0.0, amount * rate * ext)
 
     # --- Funder metrics ---------------------------------------------------
     @property
@@ -247,4 +271,5 @@ def run_swap(existing: list[Instrument], new: NewDebt,
     return SwapResult(horizon=horizon, old_service=old_service,
                       new_service=new_service, spending=sp, dfs=dfs,
                       buyback_cost=buyback, upfront_fees=new.upfront_fees,
-                      subsidy=subsidy)
+                      subsidy=subsidy, flat=flat if curve is None else None,
+                      curve=curve)

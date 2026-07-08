@@ -112,24 +112,30 @@
   Approach Framework's warning about swaps for countries whose debt trades near par.</p>
 
   <h2>Where we deliberately follow the World Bank tool</h2>
-  <p>Annual periodicity; fixed-rate instruments (floating rates should be converted to
-  fixed-equivalent before entry); the three stylized repayment profiles; no payments in
-  year 0; mid-year discounting; the buyback funding formula; and fees treated as a
-  time-zero cost. These are sensible simplifications for a screening tool and keeping
-  them makes the two tools directly comparable.</p>
+  <p>Annual periodicity; maturities entered as calendar years against a user-set
+  current year (set a past year to analyze a historical deal on its own terms);
+  fixed-rate instruments (floating rates should be converted to fixed-equivalent
+  before entry); the three stylized repayment profiles; no payments in year 0;
+  mid-year discounting; a fixed-rate or observed-yield-curve discount basis; the
+  buyback funding formula; fees treated as a time-zero cost; and a spreadsheet
+  export of all cash flows and results. These are sensible simplifications for a
+  screening tool and keeping them makes the two tools directly comparable.</p>
 
   <h2>Where our numbers can differ from the calculator</h2>
   <p>Two implementation notes for users comparing outputs. First, the deployed
   calculator's yield-curve mode interpolates linearly between observed points (with
   flat extrapolation beyond them, capped at 0-30%), while its User Guide describes a
   log-linear regression fit; small differences in curve-mode NPV can arise from that
-  divergence. The Explorer's public interface uses a flat discount rate. Second, the
-  calculator reports an additional line, savings "from maturity extension," computed as
-  the new-debt amount times a marginal rate (5% in fixed mode; the curve yield at the
-  extension tenor in curve mode) times the change in average maturity, and
-  floored at zero. That is a duration-matching heuristic rather than a cash flow, so
-  the Explorer omits it; the value of the extension already shows in the debt-service
-  chart and the ATM change.</p>
+  divergence. The Explorer's yield-curve mode follows the deployed behavior (linear
+  interpolation, flat extrapolation, the same 0-30% cap). Second, the calculator
+  reports a line for savings "from maturity extension," computed as the new-debt
+  amount times a marginal rate times the change in average maturity, floored at zero;
+  per the guide the marginal rate is the selected discount factor, while the deployed
+  fixed-rate mode hardcodes 5%. That line is a duration-matching heuristic rather than
+  a cash flow. The Explorer reports it in the savings table for comparability, labeled
+  as a heuristic and following the guide's definition, but keeps it out of the NPV
+  figures; the value of the extension already shows in the debt-service chart and the
+  ATM change.</p>
 
   <h2>What this tool does not do</h2>
   <p>It does not model default or restructuring risk (the Approach Framework notes a

@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Debt Swap Explorer — Teal Insights</title>
+<title>Debt Swap Explorer | Teal Insights</title>
 <meta name="description" content="Interactive cash-flow analysis of debt-for-development swaps: debtor savings, funder leverage, and investor value, from one explicit set of annual cash flows. Validated against the World Bank Debt Swap Calculator.">
 <meta name="theme-color" content="#143E5A">
-<meta property="og:title" content="Debt Swap Explorer — Teal Insights">
+<meta property="og:title" content="Debt Swap Explorer | Teal Insights">
 <meta property="og:description" content="One set of explicit cash flows, three seats at the table: Ministry of Finance, funder, investor.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,17 +38,27 @@
   <div class="grid">
     <div>
       <div class="panel">
-        <h2>Existing debt to be swapped</h2>
-        <div id="instruments"></div>
-        <button class="btn" id="addInstrument">+ Add instrument</button>
+        <h2>Calculation settings</h2>
+        <div class="row c2">
+          <div><label>Current year</label><input id="curYear" type="number" value="2026"></div>
+          <div></div>
+        </div>
+        <p class="hint">Set a past year to analyze a historical deal on its own terms
+          (all maturities below are calendar years).</p>
       </div>
 
       <div class="panel">
-        <h2>New financing</h2>
+        <h2>Existing debt to be swapped</h2>
+        <div id="instruments"></div>
+        <button class="btn" id="addInstrument">+ Add debt instrument</button>
+      </div>
+
+      <div class="panel">
+        <h2>New debt</h2>
         <div class="row c3">
-          <div><label>Interest rate (%)</label><input id="nRate" type="number" step="0.1" value="5"></div>
-          <div><label>Maturity (yrs)</label><input id="nMat" type="number" value="10"></div>
-          <div><label>Grace (yrs)</label><input id="nGrace" type="number" value="5"></div>
+          <div><label>Final maturity (year)</label><input id="nMat" type="number" value="2036"></div>
+          <div><label>Interest rate (% p.y.)</label><input id="nRate" type="number" step="0.1" value="5"></div>
+          <div><label>Grace period (years)</label><input id="nGrace" type="number" value="5"></div>
         </div>
         <div class="row c2">
           <div><label>Repayment profile</label>
@@ -59,35 +69,68 @@
             </select></div>
           <div><label>Upfront fees (m$)</label><input id="nFees" type="number" step="0.5" value="5"></div>
         </div>
-        <p class="hint">New debt amount is auto-set to the cash needed to retire the
-          existing instruments (loans at par plus fee; bonds at market price plus any premium).</p>
+        <p class="hint">Amount is auto-calculated from the existing debt: the cash needed to
+          retire it (loans at par plus any prepayment fee; bonds at market price plus any premium).
+          Upfront fees can include arrangement, guarantee, syndication, and legal costs.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Discount factor</h2>
+        <div class="row c2" style="align-items:center;">
+          <div>
+            <label style="display:inline-flex; align-items:center; gap:.35rem; font-size:.85rem; text-transform:none; letter-spacing:0;">
+              <input type="radio" name="discApproach" value="fixed" checked style="width:auto;"> Fixed</label>
+            &nbsp;&nbsp;
+            <label style="display:inline-flex; align-items:center; gap:.35rem; font-size:.85rem; text-transform:none; letter-spacing:0;">
+              <input type="radio" name="discApproach" value="curve" style="width:auto;"> Yield curve</label>
+          </div>
+          <div id="fixedRateBox"><label>Fixed discount factor (%)</label><input id="dRate" type="number" step="0.1" value="5"></div>
+        </div>
+        <div id="curveBox" style="display:none;">
+          <p class="hint">Up to five observed bond yields (maturity year and current yield, %).
+            Yields are interpolated linearly between points, flat beyond them, capped 0&ndash;30%.</p>
+          <div id="curvePoints"></div>
+          <button class="btn" id="addYield">+ Add observed yield</button>
+        </div>
       </div>
 
       <div class="panel">
         <h2>Development commitment</h2>
         <div class="row c3">
           <div><label>Annual spend (m$)</label><input id="cAnnual" type="number" step="0.5" value="5"></div>
-          <div><label>Starts (yr)</label><input id="cStart" type="number" value="1"></div>
-          <div><label>Duration (yrs)</label><input id="cYears" type="number" value="15"></div>
+          <div><label>First year of spend</label><input id="cStart" type="number" value="2027"></div>
+          <div><label>Duration (years)</label><input id="cYears" type="number" value="15"></div>
         </div>
         <p class="hint">The swap leg the refinancing math usually leaves out: long-term,
           predictable spending on health, education, or nature.</p>
       </div>
 
       <div class="panel">
-        <h2>Funder support &amp; discounting</h2>
+        <h2>Funder support</h2>
         <div class="row c2">
           <div><label>Funder subsidy (m$)</label><input id="fSubsidy" type="number" step="1" value="30"></div>
-          <div><label>Discount rate (%)</label><input id="dRate" type="number" step="0.1" value="5"></div>
+          <div></div>
         </div>
-        <p class="hint">Subsidy = grant element of the guarantee or donor contribution
-          that makes the new financing cheap. Discounting is flat-rate, mid-year.</p>
-        <button class="btn primary" id="calc" style="width:100%; margin-top:.3rem;">Recalculate</button>
+        <p class="hint">The grant element of the guarantee, credit enhancement, or donor
+          contribution that makes the new financing cheap.</p>
+        <button class="btn primary" id="calc" style="width:100%; margin-top:.3rem;">Calculate results</button>
       </div>
     </div>
 
     <div>
       <div class="cards" id="cards"></div>
+
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+          <div>
+            <p class="chart-title">Savings</p>
+            <p class="chart-sub">The World Bank calculator's dashboard block, computed from the same conventions.</p>
+          </div>
+          <button class="btn" id="exportBtn" title="Download all cash flows and results as CSV">Export CSV</button>
+        </div>
+        <table class="savings-table" id="savingsTable"></table>
+      </div>
+
       <div class="panel">
         <p class="chart-title" id="c1title"></p>
         <p class="chart-sub" id="c1sub"></p>
@@ -98,14 +141,19 @@
         <p class="chart-sub" id="c2sub"></p>
         <svg id="chart2" width="100%" height="280"></svg>
       </div>
+      <div class="panel" id="curveChartPanel" style="display:none;">
+        <p class="chart-title">Yield curve</p>
+        <p class="chart-sub">Observed yields (dots) and the interpolated curve used for discounting.</p>
+        <svg id="chart3" width="100%" height="240"></svg>
+      </div>
     </div>
   </div>
 </main>
 
 <footer>
-  <p>Teal Insights research preview, built July 2026. Default scenario reproduces the worked example in the
+  <p>Teal Insights research preview, built July 2026. The default scenario carries the same terms as the worked example in the
     <a href="https://www.worldbank.org/content/dam/wbr/debt-swap-user-guide-july-2025.pdf">World Bank Debt Swap Calculator User Guide</a>
-    (Rivetti &amp; Mihalyi, July 2025); the engine is validated against its published results.
+    (Rivetti &amp; Mihalyi, July 2025), and the engine reproduces the guide's published results.
     Illustrative analysis, not financial advice. See the <a href="methodology.html">methodology</a> for what this does and does not do.</p>
 </footer>
 

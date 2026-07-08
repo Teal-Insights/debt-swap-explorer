@@ -122,6 +122,14 @@ input:focus, select:focus { outline: 2px solid var(--teal); outline-offset: -1px
 .axis path, .axis line { stroke: var(--divider); }
 .legend { font-family: var(--sans); font-size: 11.5px; fill: var(--slate); }
 
+/* ---------- WB-comparable savings table ---------- */
+.savings-table { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: .88rem; margin-top: .4rem; }
+.savings-table th { text-align: left; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--slate); padding: .3rem .5rem .3rem 0; border-bottom: 1px solid var(--divider); }
+.savings-table td { padding: .38rem .5rem .38rem 0; border-bottom: 1px solid var(--divider); }
+.savings-table td.num, .savings-table th.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.savings-table td.num.neg { color: var(--terracotta); }
+.savings-table td.note { color: var(--slate); font-size: .76rem; padding-left: .8rem; }
+
 footer {
   border-top: 1px solid var(--divider); font-family: var(--sans);
   color: var(--slate); font-size: .8rem; padding: 1.2rem 2rem 2.5rem;

@@ -311,21 +311,35 @@
     svg.append("line").attr("x1", m.l).attr("x2", w - m.r).attr("y1", y(0)).attr("y2", y(0))
       .attr("stroke", COLORS.slate).attr("stroke-width", 1);
 
-    /* direct regime labels + the deal verdict, so the chart travels alone */
-    const posYears = years.filter(t => r.fiscalSpace[t - 1] > 0);
-    const negYears = years.filter(t => r.fiscalSpace[t - 1] < 0);
-    const label = (ts, text, color, above) => {
-      if (!ts.length) return;
-      const t0 = ts.reduce((a, b) =>
-        Math.abs(r.fiscalSpace[b - 1]) > Math.abs(r.fiscalSpace[a - 1]) ? b : a);
-      const vy = y(r.fiscalSpace[t0 - 1]) + (above ? -8 : 16);
+    /* Direct regime labels + the deal verdict, so the chart travels alone.
+       Each label centers on the longest contiguous run of same-sign bars
+       (white, at the run's average mid-height), and is skipped when the
+       run is too short or too shallow to hold it. */
+    const runsOf = sign => {
+      const runs = [];
+      let cur = [];
+      years.forEach(t => {
+        if (Math.sign(r.fiscalSpace[t - 1]) === sign) cur.push(t);
+        else { if (cur.length) runs.push(cur); cur = []; }
+      });
+      if (cur.length) runs.push(cur);
+      return runs;
+    };
+    const label = (sign, text) => {
+      const runs = runsOf(sign).filter(run => run.length >= 3);
+      if (!runs.length) return;
+      const run = runs.reduce((a, b) => b.length > a.length ? b : a);
+      const avg = run.reduce((s, t) => s + r.fiscalSpace[t - 1], 0) / run.length;
+      if (Math.abs(y(0) - y(avg)) < 26) return; /* too shallow to label */
+      const cxs = run.map(t => x(t) + x.bandwidth() / 2);
       svg.append("text").attr("class", "legend")
-        .attr("x", x(t0) + x.bandwidth() / 2).attr("y", vy)
-        .attr("text-anchor", "middle").attr("fill", color)
+        .attr("x", (cxs[0] + cxs[cxs.length - 1]) / 2)
+        .attr("y", (y(0) + y(avg)) / 2 + 4)
+        .attr("text-anchor", "middle").attr("fill", "#fff")
         .attr("font-weight", 600).text(text);
     };
-    label(posYears, "space created", COLORS.teal, true);
-    label(negYears, "the squeeze", COLORS.terracotta, false);
+    label(1, "space created");
+    label(-1, "the squeeze");
     svg.append("text").attr("x", w - m.r - 4).attr("y", m.t + 8)
       .attr("text-anchor", "end").attr("font-family", "Inter, sans-serif")
       .attr("font-size", "12.5px").attr("font-weight", 650).attr("fill", COLORS.ink)

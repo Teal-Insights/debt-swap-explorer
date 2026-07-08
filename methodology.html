@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Methodology — Debt Swap Explorer — Teal Insights</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <div class="masthead">
+    <div>
+      <a class="wordmark" href="https://tealinsights.com">Teal<span class="globe">&#9679;</span>Insights</a>
+      <h1>Methodology</h1>
+    </div>
+    <nav><a href="index.html">&larr; Back to the Explorer</a></nav>
+  </div>
+</header>
+
+<article>
+  <p class="byline">Teal Insights — research preview, July 2026. Feedback welcome: lte@tealinsights.com</p>
+
+  <h2>What this tool is</h2>
+  <p>The Debt Swap Explorer prices a debt-for-development swap from one explicit set of
+  annual cash flows and then shows the same transaction from three seats at the table:
+  the Ministry of Finance deciding whether to do it, the funder deciding whether to
+  subsidize it, and the investor deciding whether to sell into it. Every number on the
+  page can be traced to a cash flow in a specific year. Nothing is inferred from
+  rules of thumb.</p>
+
+  <p>It is a screening and communication tool, built in a day as a working sketch.
+  It is not a pricing system, and it does not replace transaction advisors, a debt
+  sustainability analysis, or legal and cost due diligence.</p>
+
+  <h2>Where it comes from</h2>
+  <p>The analytical starting point is the work of David Mihalyi and Diego Rivetti at the
+  World Bank. Their <a href="https://www.worldbank.org/en/topic/debt/debt-calculator">Debt
+  Swap Calculator</a> (with its <a href="https://www.worldbank.org/content/dam/wbr/debt-swap-user-guide-july-2025.pdf">User
+  Guide, July 2025</a>) gave the field something it lacked: a standardized, transparent
+  way to compare the debt being retired with the debt that replaces it, after years of
+  deals assessed with inconsistent and often nominal metrics. The joint World Bank-IMF
+  <a href="https://documents.worldbank.org/en/publication/documents-reports/documentdetail/099080524122596875/bosib170e4732504619bc417c0d0996ec21"><em>Debt
+  for Development Swaps: An Approach Framework</em></a> (2024) states the principle the
+  calculator operationalizes: net benefits should be calculated as the present value of
+  debt-service savings including all transaction costs, not as nominal savings.</p>
+
+  <p>This Explorer reimplements that engine from first principles, validates it against
+  the User Guide's published example, and then extends it where a decision needs more
+  than the refinancing math. The default scenario you see on loading the Explorer is
+  the User Guide's worked example, and the engine reproduces the guide's published
+  results: nominal savings of 24.8 / 53.3 / 80.6 / 193.6 m$ over 1, 2, 3, and 5 years,
+  and average time to maturity moving from 7.1 to 6.5 years. The same engine exists
+  twice, once in Python (the tested reference implementation) and once in JavaScript
+  (this page); the browser console logs a self-check on every load confirming the two
+  agree.</p>
+
+  <h2>The cash-flow engine, precisely</h2>
+  <p>Time is annual. Year 0 is today; no payments fall in it. For each existing
+  instrument the user supplies principal outstanding, a fixed interest rate, final
+  maturity, a repayment profile (equal installments after any remaining grace period,
+  bullet at maturity, or equal thirds over the last three years), any prepayment fee or
+  buyback premium, and, for bonds, the market price as a percentage of par.</p>
+
+  <p>Interest accrues each year on principal outstanding at the start of that year.
+  The cash needed to retire the portfolio, and hence the principal of the new
+  instrument, is the sum over instruments of: loans at par times one plus the
+  prepayment fee, and bonds at market price plus the premium. Upfront fees on the new
+  financing (arrangement, guarantee, syndication, legal) are a single time-zero cost.
+  These conventions match the World Bank calculator exactly.</p>
+
+  <p>Discounting uses a mid-year convention: a flow in year <code>t</code> is discounted
+  by <code>1/(1+d)^(t−0.5)</code>. Headline results are, for the debtor: nominal
+  debt-service savings over one to five years net of upfront fees; the net present value
+  of debt-service savings net of upfront fees; and the change in debt-service-weighted
+  average time to maturity. All of these correspond one-for-one to the World Bank
+  calculator's dashboard.</p>
+
+  <h2>What we add, and why</h2>
+
+  <h3>1. The development commitment is a cash flow, not a footnote</h3>
+  <p>A debt swap is not a refinancing. Its defining feature is the commitment to spend
+  part of the savings on development. The refinancing math alone therefore overstates
+  the fiscal space a swap creates. The Explorer models the committed spending stream
+  explicitly (an annual amount, a start year, a duration) and reports both the net
+  present value after honoring the commitment and the year-by-year net fiscal space:
+  old service minus new service minus committed spending. This is the number a
+  budget director actually lives with, and it is the reason the "net gain after
+  commitment" card can be negative even when the refinancing NPV is positive. As
+  Adil Ababou's FDL policy note argues, what swap proceeds buy best is long-term,
+  regular, predictable, protected expenditure; modeling that stream explicitly is
+  what lets Finance and Health (or Environment) negotiate over one set of numbers.</p>
+
+  <h3>2. A funder lens</h3>
+  <p>Swaps normally need a subsidy to work: a guarantee, credit enhancement, or donor
+  contribution that makes the new financing cheaper than the debtor's market rate. The
+  Approach Framework is blunt that this subsidy has an opportunity cost and should be
+  weighed against direct alternatives, including a plain grant. The Explorer takes the
+  subsidy's grant element as an input and reports leverage: the present value of
+  committed development spending per dollar of subsidy. This is a first-order metric,
+  not a full additionality assessment, which Ababou notes is "notoriously hard, if not
+  impossible" to measure precisely.</p>
+
+  <h3>3. An investor / market-consistency lens</h3>
+  <p>The calculator's savings arise mechanically from replacing one service stream with
+  another, but the economic source of the gain is buying claims below their contractual
+  present value. The Explorer makes this explicit: it reports the present value of the
+  retired flows at the chosen discount rate against the cash actually paid to retire
+  them. When that gap is small, transaction costs will likely eat the deal, which is the
+  Approach Framework's warning about swaps for countries whose debt trades near par.</p>
+
+  <h2>Where we deliberately follow the World Bank tool</h2>
+  <p>Annual periodicity; fixed-rate instruments (floating rates should be converted to
+  fixed-equivalent before entry); the three stylized repayment profiles; no payments in
+  year 0; mid-year discounting; the buyback funding formula; and fees treated as a
+  time-zero cost. These are sensible simplifications for a screening tool and keeping
+  them makes the two tools directly comparable.</p>
+
+  <h2>Where our numbers can differ from the calculator</h2>
+  <p>Two implementation notes for users comparing outputs. First, the deployed
+  calculator's yield-curve mode interpolates linearly between observed points (with
+  flat extrapolation beyond them, capped at 0-30%), while its User Guide describes a
+  log-linear regression fit; small differences in curve-mode NPV can arise from that
+  divergence. The Explorer's curve mode follows the deployed behavior. Second, the
+  calculator reports an additional line, savings "from maturity extension," computed as
+  the new-debt amount times the discount rate times the change in average maturity, and
+  floored at zero. That is a duration-matching heuristic rather than a cash flow, so
+  the Explorer omits it; the value of the extension already shows in the debt-service
+  chart and the ATM change.</p>
+
+  <h2>What this tool does not do</h2>
+  <p>It does not model default or restructuring risk (the Approach Framework notes a
+  future credit event can wipe out realized gains, so PV-positive is necessary, not
+  sufficient). It does not integrate with a DSA or produce debt-sustainability
+  indicators; it says nothing about ratings spillovers or distressed-exchange
+  classification; it does not handle currency risk (all flows are in one currency,
+  nominally USD); it does not measure additionality or development outcomes; and it
+  does not estimate the transaction costs themselves, which in real deals have run into
+  the tens of millions of dollars. Judgments about whether a swap is appropriate at
+  all, versus restructuring, ODA, or doing nothing, belong to the frameworks cited
+  below, not to a calculator.</p>
+
+  <h2>Sources</h2>
+  <table>
+    <tr><th>Source</th><th>What it contributes</th></tr>
+    <tr>
+      <td>Rivetti &amp; Mihalyi, <a href="https://www.worldbank.org/en/topic/debt/debt-calculator">World Bank Debt Swap Calculator</a> and <a href="https://www.worldbank.org/content/dam/wbr/debt-swap-user-guide-july-2025.pdf">User Guide</a> (July 2025)</td>
+      <td>The standardized refinancing engine this tool replicates and validates against.</td>
+    </tr>
+    <tr>
+      <td>World Bank &amp; IMF, <a href="https://documents.worldbank.org/en/publication/documents-reports/documentdetail/099080524122596875/bosib170e4732504619bc417c0d0996ec21"><em>Debt for Development Swaps: An Approach Framework</em></a> (2024)</td>
+      <td>The assessment principles: PV-based net benefits, transaction costs, opportunity cost of subsidies, when swaps are appropriate.</td>
+    </tr>
+    <tr>
+      <td>Ababou, <a href="https://findevlab.org/allocation-of-debt-swap-resources-guiding-principles/"><em>Debt For What Swaps? Guiding Principles for the Allocation of Debt Swap Resources</em></a>, FDL Policy Note (Feb 2025)</td>
+      <td>The allocation lens: swap proceeds suit long-term, regular, predictable, protected spending; additionality; the north-star vision.</td>
+    </tr>
+    <tr>
+      <td>World Bank, <a href="https://www.worldbank.org/en/programs/debt-for-development-swap-knowledge-hub">Global Hub on Debt for Development Swaps</a></td>
+      <td>Institutional home of the calculator and deal knowledge base.</td>
+    </tr>
+  </table>
+
+  <p style="margin-top:2rem; color:var(--slate); font-family:var(--sans); font-size:.9rem;">
+  Built by Teal Insights. The Python reference model, its tests, and this site's source
+  are in the project repository. Licensed brand fonts are not embedded in this public
+  preview.</p>
+</article>
+
+<footer>
+  <p>&copy; 2026 Teal Insights LLC · <a href="index.html">Debt Swap Explorer</a> · Illustrative analysis, not financial advice.</p>
+</footer>
+</body>
+</html>

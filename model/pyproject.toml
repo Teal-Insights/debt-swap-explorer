@@ -1,0 +1,9 @@
+[project]
+name = "debt-swap-model"
+version = "0.1.0"
+description = "First-principles cash-flow model behind the Teal Insights Debt Swap Explorer"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest>=8"]

@@ -338,7 +338,9 @@
         .attr("text-anchor", "middle").attr("fill", "#fff")
         .attr("font-weight", 600).text(text);
     };
-    label(1, "space created");
+    /* Only the negative regime gets an in-chart label: its block is deep and
+       contiguous, so white text reads cleanly; the teal bars are decoded in
+       the subtitle, and a label straddling short bars goes half-invisible. */
     label(-1, "the squeeze");
     svg.append("text").attr("x", w - m.r - 4).attr("y", m.t + 8)
       .attr("text-anchor", "end").attr("font-family", "Inter, sans-serif")

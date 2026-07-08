@@ -195,7 +195,7 @@
     html += row("From maturity extension", r.extensionSavings, "WB heuristic: amount × marginal rate × ATM change; not a cash flow");
     html += row("NPV savings @ fixed rate", rFixed.npvSavings, "mid-year discounting");
     if (rCurve) html += row("NPV savings @ yield curve", rCurve.npvSavings, approach === "curve" ? "basis in use" : "");
-    html += `<tr><td>Average time to maturity</td><td class="num">${r.atmOld.toFixed(1)} → ${r.atmNew.toFixed(1)}</td><td class="note">years, debt-service-weighted; extension ${fmt(r.atmNew - r.atmOld)}</td></tr>`;
+    html += `<tr><td>Average time to maturity</td><td class="num">${r.atmOld.toFixed(1)} → ${r.atmNew.toFixed(1)}</td><td class="note">years, debt-service-weighted; change ${fmt(+r.atmNew.toFixed(1) - +r.atmOld.toFixed(1))}</td></tr>`;
     document.getElementById("savingsTable").innerHTML = html;
   }
 

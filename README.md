@@ -5,6 +5,13 @@ at the table: the Ministry of Finance, the funder, and the investor.
 
 Live site: https://teal-insights.github.io/debt-swap-explorer/
 
+> **Research preview.** This tool is in an early design-feedback phase: we want
+> to learn which inputs, views, and outputs are actually useful to people who
+> work on debt swaps. The calculations follow the World Bank calculator's
+> published conventions but have not yet been through thorough independent
+> verification, so please treat results as indicative and directional, not
+> deal-ready. Feedback is very welcome: lte@tealinsights.com.
+
 ## What it is
 
 A static D3 app that reimplements the World Bank Debt Swap Calculator's

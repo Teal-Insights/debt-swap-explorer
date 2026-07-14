@@ -47,6 +47,17 @@ header nav a:hover { background: rgba(255,255,255,.12); }
 
 main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem 4rem; }
 
+/* ---------- research-preview notice ---------- */
+.preview-notice {
+  font-family: var(--sans); font-size: .85rem; line-height: 1.55;
+  color: var(--body-ink); background: #FCF6E8;
+  border: 1px solid var(--divider); border-left: 4px solid var(--gold);
+  border-radius: 6px; padding: .75rem 1rem; margin: 1.2rem 0 0;
+  max-width: 100ch;
+}
+.preview-notice strong { color: var(--ink); }
+.preview-notice a { color: var(--teal); }
+
 /* ---------- persona tabs ---------- */
 .personas { display: flex; gap: .5rem; margin: 1rem 0 1.2rem; flex-wrap: wrap; }
 .persona-btn {
